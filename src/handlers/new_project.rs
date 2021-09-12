@@ -1,5 +1,5 @@
 use crate::handlers::TEMPLATES;
-use anyhow::{Result};
+use anyhow::Result;
 use std::fs;
 use std::path::{Path, PathBuf};
 use tera::{self, Context as TeraContext};

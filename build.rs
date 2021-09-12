@@ -1,4 +1,3 @@
-
 use includedir_codegen::Compression;
 
 fn main() {
