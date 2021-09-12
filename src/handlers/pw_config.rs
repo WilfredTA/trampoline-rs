@@ -1,16 +1,16 @@
 use crate::rpc::*;
-use std::fs;
-use std::path::Path;
-use ckb_sdk::rpc::{OutPoint, CellDep, TransactionWithStatus, Script, ScriptHashType};
+use anyhow::Result;
+use ckb_sdk::rpc::{CellDep, OutPoint, Script, ScriptHashType, TransactionWithStatus};
 use serde::{Deserialize, Serialize};
 use serde_json;
+use std::fs;
+use std::path::Path;
 use toml;
-use anyhow::Result;
 #[derive(Clone, Debug, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PwScriptRef {
     cell_dep: CellDep,
-    script: Script
+    script: Script,
 }
 
 #[derive(Clone, Debug, Hash, Serialize, Deserialize)]
@@ -21,12 +21,12 @@ pub struct PwConfig {
     pw_lock: PwScriptRef,
     sudt_type: PwScriptRef,
     multi_sig_lock: PwScriptRef,
-    acp_lock_list: Vec<Script>
+    acp_lock_list: Vec<Script>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct ChainConfig {
-    ckb_dev: DevConfig
+    ckb_dev: DevConfig,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -51,9 +51,8 @@ pub struct SysCellConfig {
 pub struct DepGroupConfig {
     included_cells: Vec<String>,
     tx_hash: String,
-    index: u64
+    index: u64,
 }
-
 
 pub fn read_hash_toml() -> Result<ChainConfig> {
     let toml_ = fs::read_to_string("./ckb-hashes.toml")?;
