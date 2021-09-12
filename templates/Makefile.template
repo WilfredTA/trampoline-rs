@@ -1,0 +1,46 @@
+
+initialize:
+	git init
+	mkdir deps/pw-lock
+	mkdir deps/ckb-scripts
+	git clone --recurse-submodules https://github.com/lay2dev/pw-lock ./deps/pw-lock
+	git clone --recurse-submodules https://github.com/nervosnetwork/ckb-miscellaneous-scripts  ./deps/ckb-scripts
+	cd ./deps/ckb-scripts; git checkout 60c2e7388e46ef7c2701a98472b64a038092ec1a
+
+pw-lock:
+	cd deps/pw-lock; git submodule update --recursive
+	cd deps/pw-lock; make all-via-docker
+
+ckb-scripts:
+	git submodule update --recursive
+	cd deps/ckb-scripts; git submodule update --init --recursive && make all-via-docker
+
+start-docker:
+	docker build . -t iamm/trampoline-env:latest
+	docker run --rm -it -p 8114:8114 -p 8115:8115 --name {{PROJ_NAME}} iamm/trampoline-env:latest
+
+stop-docker:
+	docker stop {{PROJ_NAME}}
+
+start-ckb:
+	docker exec -d -w /ckb/dev {{PROJ_NAME}} ../ckb/ckb run
+
+start-miner:
+	docker exec -d -w /ckb/dev {{PROJ_NAME}} ../ckb/ckb miner
+
+deploy-sudt-local:
+	docker exec {{PROJ_NAME}} sh -c '/ckb/ckb/ckb-cli wallet transfer --type-id \
+--privkey-path /ckb_dummy_accounts/genesis1 \
+--to-address ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37 \
+--tx-fee 0.01 \
+--capacity 80000 \
+--to-data-path /scripts/misc/simple_udt > /trampoline/deployed/sudt-tx';
+
+
+deploy-pw-lock-local:
+	docker exec {{PROJ_NAME}} sh -c '/ckb/ckb/ckb-cli wallet transfer --type-id \
+--privkey-path /ckb_dummy_accounts/genesis1 \
+--to-address ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37 \
+--tx-fee 0.01 \
+--capacity 80000 \
+--to-data-path /scripts/pw/secp256k1_keccak256_sighash_all > /trampoline/deployed/pwlock-tx';

@@ -1,0 +1,43 @@
+FROM rust:1 as builder
+
+
+RUN apt-get update
+RUN apt-get -y install --no-install-recommends llvm-dev clang libclang-dev libssl-dev
+
+RUN cargo install moleculec --version 0.7.0
+
+RUN mkdir /ckb
+RUN cd /ckb && curl -L https://github.com/nervosnetwork/ckb/releases/download/v0.43.2/ckb_v0.43.2_x86_64-unknown-linux-gnu.tar.gz > ckb.tar.gz
+RUN cd /ckb && tar -xf ckb.tar.gz
+RUN cd /ckb && mv ckb_v0.43.2_x86_64-unknown-linux-gnu ckb
+RUN mkdir /ckb/dev
+RUN mkdir ckb/dev/specs
+RUN mkdir ckb/dev/data
+COPY ckb_dev/ckb-miner.toml /ckb/dev/
+COPY ckb_dev/ckb.toml /ckb/dev/
+COPY ckb_dev/specs/dev.toml /ckb/dev/specs/
+COPY ckb_dev/default.db-options /ckb/dev/
+
+RUN mkdir /ckb_dummy_accounts
+COPY ckb_dev/dev_keys/* /ckb_dummy_accounts/
+RUN /ckb/ckb/ckb-cli account import --privkey-path /ckb_dummy_accounts/genesis1
+RUN /ckb/ckb/ckb-cli account import --privkey-path /ckb_dummy_accounts/genesis2
+RUN /ckb/ckb/ckb-cli account import --privkey-path /ckb_dummy_accounts/miner
+
+
+
+RUN mkdir /indexer
+RUN cd /indexer && curl -L https://github.com/nervosnetwork/ckb-indexer/releases/download/v0.2.2/ckb-indexer-0.2.2-linux.zip > ckb_indexer.zip
+RUN cd /indexer && unzip ckb_indexer.zip
+RUN cd /indexer && tar -xf ckb-indexer-linux-x86_64.tar.gz
+
+RUN mkdir -p /scripts/pw
+COPY deps/pw-lock/specs/cells/* /scripts/pw/
+
+RUN mkdir -p scripts/misc
+COPY deps/ckb-scripts/build/simple_udt /scripts/misc/
+COPY deps/ckb-scripts/build/open_transaction /scripts/misc/
+
+RUN mkdir -p trampoline/deployed
+
+EXPOSE 8114 8115
