@@ -35,6 +35,7 @@ deploy-sudt-local:
 --tx-fee 0.01 \
 --capacity 80000 \
 --to-data-path /scripts/misc/simple_udt > /trampoline/deployed/sudt-tx';
+	docker cp {{PROJ_NAME}} /trampoline/deployed/sudt-tx ./.trampoline/deployed/
 
 
 deploy-pw-lock-local:
@@ -44,3 +45,4 @@ deploy-pw-lock-local:
 --tx-fee 0.01 \
 --capacity 80000 \
 --to-data-path /scripts/pw/secp256k1_keccak256_sighash_all > /trampoline/deployed/pwlock-tx';
+	docker cp {{PROJ_NAME}} /trampoline/deployed/pwlock-tx ./.trampoline/deployed/
