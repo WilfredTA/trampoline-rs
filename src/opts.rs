@@ -13,6 +13,10 @@ pub enum TrampolineCommand {
     #[structopt(name = "faucet")]
     #[structopt(about = "Send ckbytes from genesis accounts to a personal address")]
     Faucet { target: String, amount: String },
+    #[structopt(name = "pwconfig")]
+    PwConfig,
+    #[structopt(name = "deployed")]
+    GetDeployed { name: String },
 }
 
 #[derive(Debug, StructOpt)]
