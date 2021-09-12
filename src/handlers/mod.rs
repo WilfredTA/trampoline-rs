@@ -23,3 +23,4 @@ lazy_static! {
 }
 
 pub mod new_project;
+pub mod pw_config;

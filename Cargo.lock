@@ -2594,6 +2594,7 @@ dependencies = [
  "structopt",
  "tera",
  "tokio",
+ "toml",
 ]
 
 [[package]]

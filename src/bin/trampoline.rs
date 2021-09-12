@@ -2,7 +2,7 @@ use structopt::StructOpt;
 
 use anyhow::Result;
 use std::path::PathBuf;
-use trampoline::handlers::new_project;
+use trampoline::handlers::{new_project, pw_config};
 use trampoline::opts::{Opts, TrampolineCommand};
 use trampoline::rpc::{get_pw_tx_info, get_sudt_tx_info};
 use trampoline::DEV_RPC_URL;
@@ -26,6 +26,9 @@ async fn main() -> Result<()> {
                 panic!("Unspported argument to trampoline deployed <named_tx>");
             }
         },
+        TrampolineCommand::PwConfig => {
+            pw_config::read_hash_toml()?;
+        }
         _ => {
             println!("No other commands yet");
         }

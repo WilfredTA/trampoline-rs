@@ -9,6 +9,7 @@ The framework for building powerful dApps on the number one UTXO chain, Nervos N
 ## Installation
 `cargo install --git https://github.com/wilfredTA/trampoline trampoline`
 
+Or, clone the project, then `cd trampoline-rs && cargo build && cargo install --path . `
 ## Usage
 All you can do right now is create a new project:
 ```bash
