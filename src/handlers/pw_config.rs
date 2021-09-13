@@ -88,17 +88,63 @@ enum SysCellSelected {
 
 // To do: Remove using ckb_sdk types and take advantage of serialization implementations.
 // ckb_sdk types do not serialize exactly as required
-pub fn gen_config() -> Result<()> {
+pub fn gen_config() -> Result<PwConfig> {
     let hashes_json = fs::read_to_string("./ckb-hashes.json")?;
     let chain_config: ChainConfig = serde_json::from_str(hashes_json.as_str())?;
     let sys_cells = &chain_config.ckb_dev.system_cells;
-    gen_syscell_config(sys_cells, SysCellSelected::DaoType)?;
-    gen_syscell_config(sys_cells, SysCellSelected::DefaultLock)?;
-    gen_syscell_config(sys_cells, SysCellSelected::Sudt)?;
-    gen_syscell_config(sys_cells, SysCellSelected::PwLock)?;
-    Ok(())
+    let dao_type = gen_syscell_config(sys_cells, SysCellSelected::DaoType)?;
+    let default_lock = gen_syscell_config(sys_cells, SysCellSelected::DefaultLock)?;
+    let sudt_type = gen_syscell_config(sys_cells, SysCellSelected::Sudt)?;
+    let pw_lock = gen_syscell_config(sys_cells, SysCellSelected::PwLock)?;
+    let multi_sig_lock = gen_multisig_config()?;
+    let acp_lock_list = gen_acp_lock_list_config()?;
+
+    let pw_config = PwConfig {
+      dao_type,
+        default_lock,
+        pw_lock,
+        sudt_type,
+        multi_sig_lock,
+        acp_lock_list
+    };
+
+    fs::write("./PwConfig.json", serde_json::to_string(&pw_config)?)?;
+    Ok(pw_config)
 }
 
+fn gen_acp_lock_list_config() -> Result<Vec<Script>> {
+    let mut vec = Vec::new();
+    let script = Script {
+        code_hash: Default::default(),
+        args: Default::default(),
+        hash_type: ScriptHashType::Type
+    };
+    vec.push(script);
+
+    Ok(vec)
+}
+fn gen_multisig_config() -> Result<PwScriptRef> {
+    let out_point = OutPoint {
+        tx_hash: H256::from_str("d6d78382f948a6fab16ba084a4c3ed16eb3fe203669a6bc8a8f831e09177117f")?,
+        index: Uint32::from(1)
+    };
+
+    let cell_dep = CellDep {
+        out_point,
+        dep_type: DepType::DepGroup
+    };
+
+    let script = Script {
+        code_hash: H256::from_str("5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8")?,
+        hash_type: ScriptHashType::Type,
+        args: Default::default()
+    };
+
+    Ok(PwScriptRef {
+        cell_dep,
+        script
+    })
+}
 fn gen_syscell_config(
     sys_cells: &Vec<SysCellConfig>,
     type_: SysCellSelected,
@@ -125,7 +171,7 @@ fn gen_dao_config(sys_cells: &Vec<SysCellConfig>) -> Result<PwScriptRef> {
         script: dao_script,
         cell_dep: dao_cell_dep,
     };
-    fs::write("./pw-config-dao.json", serde_json::to_string(&dao_pw_obj)?)?;
+    // fs::write("./pw-config-dao.json", serde_json::to_string(&dao_pw_obj)?)?;
 
     Ok(dao_pw_obj)
 }
@@ -145,10 +191,10 @@ fn gen_default_lock_config(sys_cells: &Vec<SysCellConfig>) -> Result<PwScriptRef
         cell_dep: lock_dep,
     };
 
-    fs::write(
-        "./pw-config-default-lock.json",
-        serde_json::to_string(&lock_pw_obj)?,
-    )?;
+    // fs::write(
+    //     "./pw-config-default-lock.json",
+    //     serde_json::to_string(&lock_pw_obj)?,
+    // )?;
 
     Ok(lock_pw_obj)
 }
@@ -185,11 +231,11 @@ fn gen_sudt_config() -> Result<PwScriptRef> {
     };
 
     let sudt_pw_obj = PwScriptRef { script, cell_dep };
-
-    fs::write(
-        "./pw-config-sudt.json",
-        serde_json::to_string(&sudt_pw_obj)?,
-    )?;
+    //
+    // fs::write(
+    //     "./pw-config-sudt.json",
+    //     serde_json::to_string(&sudt_pw_obj)?,
+    // )?;
     Ok(sudt_pw_obj)
 }
 
@@ -227,10 +273,10 @@ fn gen_pwlock_config() -> Result<PwScriptRef> {
 
     let pw_lock_obj = PwScriptRef { script, cell_dep };
 
-    fs::write(
-        "./pw-config-pw-lock.json",
-        serde_json::to_string(&pw_lock_obj)?,
-    )?;
+    // fs::write(
+    //     "./pw-config-pw-lock.json",
+    //     serde_json::to_string(&pw_lock_obj)?,
+    // )?;
     Ok(pw_lock_obj)
 }
 fn build_cell_dep(tx_hash: &str, index: u32, dep_type: &str) -> Result<CellDep> {
