@@ -2,14 +2,10 @@ use crate::rpc::*;
 use crate::rpc::{get_pw_tx_info, get_sudt_tx_info};
 use crate::DEV_RPC_URL;
 use anyhow::Result;
-use ckb_sdk::rpc::{
-    CellDep, DepType, JsonBytes, OutPoint, Script, ScriptHashType, TransactionWithStatus,
+use ckb_jsonrpc_types::{
+    CellDep, DepType, JsonBytes, OutPoint, Script, ScriptHashType, TransactionWithStatus, Uint32,
 };
-use ckb_types::bytes::Bytes;
-use ckb_types::core;
-use ckb_types::packed::{Uint32, Uint32Builder};
-use ckb_types::prelude::{Entity, Pack, PackVec};
-use ckb_types::H256;
+use ckb_types::{bytes::Bytes, core, prelude::*, H256};
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::borrow::Borrow;
@@ -179,6 +175,7 @@ fn gen_sudt_config() -> Result<PwScriptRef> {
         args,
     };
 
+    let index = Uint32::from(index);
     let out_point = OutPoint { tx_hash, index };
 
     let cell_dep = CellDep {
@@ -201,6 +198,8 @@ fn build_cell_dep(tx_hash: &str, index: u32, dep_type: &str) -> Result<CellDep> 
         "group" => DepType::DepGroup,
         _ => DepType::Code,
     };
+
+    let index = Uint32::from(index);
 
     let out_point = OutPoint {
         tx_hash: H256::from_str(tx_hash)?,
