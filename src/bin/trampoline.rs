@@ -23,11 +23,12 @@ async fn main() -> Result<()> {
                 get_sudt_tx_info(DEV_RPC_URL);
             }
             _ => {
-                panic!("Unspported argument to trampoline deployed <named_tx>");
+                panic!("Unsupported argument to trampoline deployed <named_tx>");
             }
         },
         TrampolineCommand::PwConfig => {
-            pw_config::read_hash_toml()?;
+            //pw_config::read_hash_toml()?;
+            pw_config::gen_config()?;
         }
         _ => {
             println!("No other commands yet");
