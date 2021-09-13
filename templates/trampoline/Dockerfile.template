@@ -30,6 +30,7 @@ RUN mkdir /indexer
 RUN cd /indexer && curl -L https://github.com/nervosnetwork/ckb-indexer/releases/download/v0.2.2/ckb-indexer-0.2.2-linux.zip > ckb_indexer.zip
 RUN cd /indexer && unzip ckb_indexer.zip
 RUN cd /indexer && tar -xf ckb-indexer-linux-x86_64.tar.gz
+RUN cd /indexer & mkdir ./data
 
 RUN mkdir -p /scripts/pw
 COPY deps/pw-lock/specs/cells/* /scripts/pw/
