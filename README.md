@@ -11,30 +11,29 @@ The framework for building powerful dApps on the number one UTXO chain, Nervos N
 
 Or, clone the project, then `cd trampoline-rs && cargo build && cargo install --path . `
 ## Usage
-All you can do right now is create a new project:
+All you can do right now is create a new project, launch a containerized developer netowrk, autodeploy useful scripts
+that aren't included in the genesis cells, and generate configs that make building dapps a lot easier.
+
+### Create a new project
+To get started:
 ```bash
 trampoline new <project_name>
 ```
 
 This will create a new directory with `<project_name>`.
 
-It generates a Makefile and Dockerfile for development purposes.
-Currently, each Make recipe is small and single purpose, so it takes a few different commands to get started.
+### Launch developer environment
+Navigate to your project's directory and you can get started with two commands:
 
 ```bash
-cd <project_name>
-
-make initialize
+make all
+make deploy-all
 ```
 
-Then run `make pw-lock`. This will fail with an error the first time... so just execute it again and it will succeed.
+The first command will set everything up, including your docker environment & start a local ckb node & miner.
+The second command will deploy important scripts and then execute the `trampoline pwconfig` command to generate the
+config file for front end dapps that use `pw-core`.
 
-Then, here are the following recipes available:
-
-1. `make ckb-scripts`: This builds important scripts such as the SUDT script and the open tx lock.
-2. `make start-docker`: This sets up the docker environment in which the local developer network will run
-3. `make start-ckb`: This starts a local ckb node configured for Trampoline development
-4. `make start-miner`: Starts mining the local ckb node within docker
-5. `make deploy-<script_name>-local`: Deploys a prebuilt script to the dev network and caches information about it so
-that trampoline can generate the correct bindings for the javascript dapp. Currently you can do 
-`make deploy-pw-lock-local` and `make deploy-sudt-local`.
+I recommend waiting a few seconds between running `make all` and `make deploy-all`, since the deploy-all recipe
+*sometimes* fails if the ckb node is still initializing. Usually, waiting about 2-3 seconds suffices. If 
+`make deploy-all` fails, you don't have to do anything besides re-run the command.

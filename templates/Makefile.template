@@ -1,9 +1,17 @@
+all: | initialize scripts start-docker start-ckb start-miner
+
+deploy-scripts: deploy-pw-lock-local deploy-sudt-local
+
+deploy-all: deploy-scripts
+	trampoline pwconfig
+
+scripts: pw-lock ckb-scripts
 
 initialize:
 	git init
 	mkdir deps/pw-lock
 	mkdir deps/ckb-scripts
-	git clone --recurse-submodules https://github.com/lay2dev/pw-lock ./deps/pw-lock
+	git clone --recurse-submodules https://github.com/wilfredTA/pw-lock ./deps/pw-lock
 	git clone --recurse-submodules https://github.com/nervosnetwork/ckb-miscellaneous-scripts  ./deps/ckb-scripts
 	cd ./deps/ckb-scripts; git checkout 60c2e7388e46ef7c2701a98472b64a038092ec1a
 
@@ -17,7 +25,7 @@ ckb-scripts:
 
 start-docker:
 	docker build . -t iamm/trampoline-env:latest
-	docker run --rm -it -p 8114:8114 -p 8115:8115 --name {{PROJ_NAME}} iamm/trampoline-env:latest
+	docker run --rm -d -it -p 8114:8114 -p 8115:8115 --name {{PROJ_NAME}} iamm/trampoline-env:latest
 
 stop-docker:
 	docker stop {{PROJ_NAME}}
