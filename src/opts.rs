@@ -18,10 +18,7 @@ pub enum TrampolineCommand {
     #[structopt(name = "deployed")]
     GetDeployed { name: String },
     #[structopt(name = "create-ckb-dapp")]
-    CreateCkbDapp {
-        name: String,
-        path_to_template: String,
-    },
+    CreateCkbDapp { name: String },
 }
 
 #[derive(Debug, StructOpt)]

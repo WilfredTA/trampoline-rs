@@ -45,3 +45,9 @@ config file for front end dapps that use `pw-core`.
 I recommend waiting a few seconds between running `make all` and `make deploy-all`, since the deploy-all recipe
 *sometimes* fails if the ckb node is still initializing. Usually, waiting about 2-3 seconds suffices. If 
 `make deploy-all` fails, you don't have to do anything besides re-run the command.
+
+### React-based Dapp
+
+After running the `make` recipes in the root of your Trampoline project, you can generate a React dApp frontend like so:
+
+`trampoline create-ckb-dapp <front_end_name>`

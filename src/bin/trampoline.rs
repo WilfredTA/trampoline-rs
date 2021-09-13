@@ -30,11 +30,8 @@ async fn main() -> Result<()> {
             pw_config::read_hash_toml()?;
             pw_config::gen_config()?;
         }
-        TrampolineCommand::CreateCkbDapp {
-            name,
-            path_to_template,
-        } => {
-            create_ckb_dapp::create(name, &path_to_template);
+        TrampolineCommand::CreateCkbDapp { name } => {
+            create_ckb_dapp::create(name);
         }
         _ => {
             println!("No other commands yet");

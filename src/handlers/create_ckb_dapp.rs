@@ -8,7 +8,7 @@ use std::str::FromStr;
 use tempfile::{tempdir, tempfile};
 use tera::Context;
 
-pub fn create(name: String, path_to_template: &str) -> Result<()> {
+pub fn create(name: String) -> Result<()> {
     let mut dapp_path = std::env::current_dir()?;
     dapp_path.push(name.as_str());
     let cra_template_dir = tempdir()?;
