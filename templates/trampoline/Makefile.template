@@ -36,6 +36,9 @@ start-ckb:
 start-miner:
 	docker exec -d -w /ckb/dev {{PROJ_NAME}} ../ckb/ckb miner
 
+start-indexer:
+	docker exec -d -w /indexer defi_dapp ./ckb-indexer -l 0.0.0.0:8114 -s ./data
+
 deploy-sudt-local:
 	docker exec {{PROJ_NAME}} sh -c '/ckb/ckb/ckb-cli wallet transfer --type-id \
 --privkey-path /ckb_dummy_accounts/genesis1 \

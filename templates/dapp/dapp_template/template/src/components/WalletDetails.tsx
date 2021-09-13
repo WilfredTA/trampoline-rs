@@ -30,6 +30,7 @@ const WalletDetails = (props: { provider: Provider | undefined, collector: Basic
             <p>CKB Address: {addr}</p>
             <p>Lockhash: {lockhash}</p>
             <p>CKB Balance: </p>
+            <p>{balance}</p>
         </div>
     )
 }

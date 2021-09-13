@@ -3,7 +3,7 @@ use crate::rpc::{get_pw_tx_info, get_sudt_tx_info};
 use crate::DEV_RPC_URL;
 use anyhow::Result;
 use ckb_jsonrpc_types::{
-    CellDep, DepType, JsonBytes, OutPoint, Script, ScriptHashType, TransactionWithStatus, Uint32,
+    CellDep as RpcCellDep, DepType, JsonBytes, OutPoint as RpcOutpoint, Script as RpcScript, ScriptHashType, TransactionWithStatus, Uint32,
 };
 use ckb_types::{bytes::Bytes, core, prelude::*, H256};
 use serde::{Deserialize, Serialize};
@@ -17,9 +17,34 @@ use toml;
 
 #[derive(Clone, Debug, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+struct Script {
+    code_hash: H256,
+    hash_type: ScriptHashType,
+    args: JsonBytes,
+}
+#[derive(Clone, Debug, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct OutPoint {
+    tx_hash: H256,
+    index: Uint32
+}
+
+#[derive(Clone, Debug, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct CellDep {
+    out_point: OutPoint,
+    dep_type: DepType
+}
+#[derive(Clone, Debug, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct PwScriptRef {
     cell_dep: CellDep,
     script: Script,
+}
+#[derive(Clone, Debug, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DappConfig {
+    dev: PwConfig
 }
 
 #[derive(Clone, Debug, Hash, Serialize, Deserialize)]
@@ -88,7 +113,7 @@ enum SysCellSelected {
 
 // To do: Remove using ckb_sdk types and take advantage of serialization implementations.
 // ckb_sdk types do not serialize exactly as required
-pub fn gen_config() -> Result<PwConfig> {
+pub fn gen_config() -> Result<DappConfig> {
     let hashes_json = fs::read_to_string("./ckb-hashes.json")?;
     let chain_config: ChainConfig = serde_json::from_str(hashes_json.as_str())?;
     let sys_cells = &chain_config.ckb_dev.system_cells;
@@ -108,8 +133,12 @@ pub fn gen_config() -> Result<PwConfig> {
         acp_lock_list
     };
 
-    fs::write("./PwConfig.json", serde_json::to_string(&pw_config)?)?;
-    Ok(pw_config)
+    let dapp_config = DappConfig {
+        dev: pw_config
+    };
+
+    fs::write("./PwConfig.json", serde_json::to_string(&dapp_config)?)?;
+    Ok(dapp_config)
 }
 
 fn gen_acp_lock_list_config() -> Result<Vec<Script>> {

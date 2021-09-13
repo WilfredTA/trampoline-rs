@@ -47,7 +47,11 @@ pub fn create(name: String, path_to_template: &str) -> Result<()> {
     }
     path_to_template.push("dapp_template");
 
-    write_dapp(&path_to_template, name)?;
+
+    write_dapp(&path_to_template, name.clone())?;
+    let mut config = fs::read_to_string("./PwConfig.json")?;
+    // config = config.to_case(Case::Camel);
+    fs::write(format!("./{}/src/pwConfig.json", name), config)?;
 
 
     Ok(())
@@ -88,5 +92,6 @@ fn write_dapp(path_to_template: &PathBuf, name: String) -> Result<()> {
         .stdout(Stdio::inherit())
         .spawn()?
         .wait()?;
+
     Ok(())
 }
