@@ -44,6 +44,9 @@ pub fn generate_project<P: AsRef<Path>>(name: String, project_path: P) -> Result
     let mut context = TeraContext::new();
     context.insert("PROJ_NAME", &name);
     for path in TEMPLATES.get_template_names() {
+        if path.starts_with("dapp") {
+            continue;
+        }
         while !&sub_dir_path.ends_with(&name) {
             sub_dir_path.pop();
         }

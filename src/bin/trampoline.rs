@@ -2,7 +2,7 @@ use structopt::StructOpt;
 
 use anyhow::Result;
 use std::path::PathBuf;
-use trampoline::handlers::{new_project, pw_config};
+use trampoline::handlers::{new_project, pw_config, create_ckb_dapp};
 use trampoline::opts::{Opts, TrampolineCommand};
 use trampoline::rpc::{get_pw_tx_info, get_sudt_tx_info};
 use trampoline::DEV_RPC_URL;
@@ -29,7 +29,10 @@ async fn main() -> Result<()> {
         TrampolineCommand::PwConfig => {
             pw_config::read_hash_toml()?;
             pw_config::gen_config()?;
-        }
+        },
+        TrampolineCommand::CreateCkbDapp {name, path_to_template} => {
+            create_ckb_dapp::create(name, &path_to_template);
+        },
         _ => {
             println!("No other commands yet");
         }
