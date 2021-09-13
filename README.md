@@ -7,7 +7,15 @@ The framework for building powerful dApps on the number one UTXO chain, Nervos N
 *Why port it to Rust? Because I was tired of NPM*
 
 ## Installation
-`cargo install --git https://github.com/wilfredTA/trampoline trampoline`
+
+### Pre-requisites
+- Rust toolchain
+- Docker
+
+Note: You must have permission to manage docker. [This article can help](https://docs.docker.com/engine/install/linux-postinstall/) if you run into permissions errors
+when running docker.
+
+`cargo install trampoline --git https://github.com/WilfredTA/trampoline-rs`
 
 Or, clone the project, then `cd trampoline-rs && cargo build && cargo install --path . `
 ## Usage
