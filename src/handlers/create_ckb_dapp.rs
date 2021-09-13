@@ -17,7 +17,8 @@ pub fn create(name: String) -> Result<()> {
     let mut path_to_template = cra_template_path.clone();
     let mut context = Context::new();
     cra_template_path.push("dapp_template");
-
+    context.insert("DAPP_NAME", &name);
+    context.insert("dapp_name", &name);
     for file in TEMPLATES.get_template_names() {
         if file.starts_with("dapp/dapp_template") {
             while !&cra_template_path.ends_with("dapp_template") {

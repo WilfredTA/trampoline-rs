@@ -75,7 +75,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <img src={logo} className="App-logo" alt="logo" />
-        <h1>CKB React Dapp</h1>
+        <h1>{{DAPP_NAME}}</h1>
         <p>
           This project was set up using Trampoline.
         </p>
