@@ -95,6 +95,7 @@ pub fn gen_config() -> Result<()> {
     gen_syscell_config(sys_cells, SysCellSelected::DaoType)?;
     gen_syscell_config(sys_cells, SysCellSelected::DefaultLock)?;
     gen_syscell_config(sys_cells, SysCellSelected::Sudt)?;
+    gen_syscell_config(sys_cells, SysCellSelected::PwLock)?;
     Ok(())
 }
 
@@ -106,7 +107,7 @@ fn gen_syscell_config(
         SysCellSelected::DaoType => gen_dao_config(sys_cells),
         SysCellSelected::DefaultLock => gen_default_lock_config(sys_cells),
         SysCellSelected::Sudt => gen_sudt_config(),
-        _ => gen_default_lock_config(sys_cells),
+        SysCellSelected::PwLock => gen_pwlock_config(),
     };
 }
 
@@ -190,6 +191,47 @@ fn gen_sudt_config() -> Result<PwScriptRef> {
         serde_json::to_string(&sudt_pw_obj)?,
     )?;
     Ok(sudt_pw_obj)
+}
+
+fn gen_pwlock_config() -> Result<PwScriptRef> {
+    let pwlock_info = get_pw_tx_info(DEV_RPC_URL)?;
+    let tx_hash = pwlock_info.transaction.hash;
+    let index: u32 = 0;
+    println!("PW LOCK TX: {:?}", pwlock_info.transaction.inner);
+    let code_hash = pwlock_info.transaction.inner.outputs[0]
+        .type_
+        .as_ref()
+        .unwrap()
+        .code_hash
+        .clone();
+    let args = "0x";
+
+    let args = hex::decode(args.trim_start_matches("0x"))?;
+    let args = Bytes::copy_from_slice(args.as_slice());
+    println!("Args as bytes: {:?}", args);
+    let args = JsonBytes::from_bytes(args);
+
+    let script = Script {
+        code_hash,
+        hash_type: ScriptHashType::Type,
+        args,
+    };
+
+    let index = Uint32::from(index);
+    let out_point = OutPoint { tx_hash, index };
+
+    let cell_dep = CellDep {
+        out_point,
+        dep_type: DepType::Code,
+    };
+
+    let pw_lock_obj = PwScriptRef { script, cell_dep };
+
+    fs::write(
+        "./pw-config-pw-lock.json",
+        serde_json::to_string(&pw_lock_obj)?,
+    )?;
+    Ok(pw_lock_obj)
 }
 fn build_cell_dep(tx_hash: &str, index: u32, dep_type: &str) -> Result<CellDep> {
     let tx_hash = tx_hash.trim_start_matches("0x");

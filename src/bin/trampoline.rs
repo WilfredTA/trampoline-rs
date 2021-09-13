@@ -27,7 +27,7 @@ async fn main() -> Result<()> {
             }
         },
         TrampolineCommand::PwConfig => {
-            //pw_config::read_hash_toml()?;
+            pw_config::read_hash_toml()?;
             pw_config::gen_config()?;
         }
         _ => {

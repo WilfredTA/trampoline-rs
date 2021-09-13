@@ -18,7 +18,7 @@ fn get_cached_tx_info<P: AsRef<Path>>(url: &str, path: P) -> Result<TransactionW
     let mut client = HttpRpcClient::new(url.to_string());
     let tx_hash = read_cached_tx_hash(path)?;
     let tx_view = client.get_transaction(tx_hash).unwrap();
-    println!("Transaction retrieved: {:?}", tx_view);
+    //println!("Transaction retrieved: {:?}", tx_view);
     Ok(tx_view.unwrap())
 }
 
