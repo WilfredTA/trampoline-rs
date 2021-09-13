@@ -3,7 +3,8 @@ use crate::rpc::{get_pw_tx_info, get_sudt_tx_info};
 use crate::DEV_RPC_URL;
 use anyhow::Result;
 use ckb_jsonrpc_types::{
-    CellDep as RpcCellDep, DepType, JsonBytes, OutPoint as RpcOutpoint, Script as RpcScript, ScriptHashType, TransactionWithStatus, Uint32,
+    CellDep as RpcCellDep, DepType, JsonBytes, OutPoint as RpcOutpoint, Script as RpcScript,
+    ScriptHashType, TransactionWithStatus, Uint32,
 };
 use ckb_types::{bytes::Bytes, core, prelude::*, H256};
 use serde::{Deserialize, Serialize};
@@ -26,14 +27,14 @@ struct Script {
 #[serde(rename_all = "camelCase")]
 struct OutPoint {
     tx_hash: H256,
-    index: Uint32
+    index: Uint32,
 }
 
 #[derive(Clone, Debug, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct CellDep {
     out_point: OutPoint,
-    dep_type: DepType
+    dep_type: DepType,
 }
 #[derive(Clone, Debug, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -44,7 +45,7 @@ pub struct PwScriptRef {
 #[derive(Clone, Debug, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DappConfig {
-    dev: PwConfig
+    dev: PwConfig,
 }
 
 #[derive(Clone, Debug, Hash, Serialize, Deserialize)]
@@ -125,17 +126,15 @@ pub fn gen_config() -> Result<DappConfig> {
     let acp_lock_list = gen_acp_lock_list_config()?;
 
     let pw_config = PwConfig {
-      dao_type,
+        dao_type,
         default_lock,
         pw_lock,
         sudt_type,
         multi_sig_lock,
-        acp_lock_list
+        acp_lock_list,
     };
 
-    let dapp_config = DappConfig {
-        dev: pw_config
-    };
+    let dapp_config = DappConfig { dev: pw_config };
 
     fs::write("./PwConfig.json", serde_json::to_string(&dapp_config)?)?;
     Ok(dapp_config)
@@ -146,7 +145,7 @@ fn gen_acp_lock_list_config() -> Result<Vec<Script>> {
     let script = Script {
         code_hash: Default::default(),
         args: Default::default(),
-        hash_type: ScriptHashType::Type
+        hash_type: ScriptHashType::Type,
     };
     vec.push(script);
 
@@ -154,25 +153,26 @@ fn gen_acp_lock_list_config() -> Result<Vec<Script>> {
 }
 fn gen_multisig_config() -> Result<PwScriptRef> {
     let out_point = OutPoint {
-        tx_hash: H256::from_str("d6d78382f948a6fab16ba084a4c3ed16eb3fe203669a6bc8a8f831e09177117f")?,
-        index: Uint32::from(1)
+        tx_hash: H256::from_str(
+            "d6d78382f948a6fab16ba084a4c3ed16eb3fe203669a6bc8a8f831e09177117f",
+        )?,
+        index: Uint32::from(1),
     };
 
     let cell_dep = CellDep {
         out_point,
-        dep_type: DepType::DepGroup
+        dep_type: DepType::DepGroup,
     };
 
     let script = Script {
-        code_hash: H256::from_str("5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8")?,
+        code_hash: H256::from_str(
+            "5c5069eb0857efc65e1bca0c07df34c31663b3622fd3876c876320fc9634e2a8",
+        )?,
         hash_type: ScriptHashType::Type,
-        args: Default::default()
+        args: Default::default(),
     };
 
-    Ok(PwScriptRef {
-        cell_dep,
-        script
-    })
+    Ok(PwScriptRef { cell_dep, script })
 }
 fn gen_syscell_config(
     sys_cells: &Vec<SysCellConfig>,

@@ -20,8 +20,8 @@ pub enum TrampolineCommand {
     #[structopt(name = "create-ckb-dapp")]
     CreateCkbDapp {
         name: String,
-        path_to_template: String
-    }
+        path_to_template: String,
+    },
 }
 
 #[derive(Debug, StructOpt)]
