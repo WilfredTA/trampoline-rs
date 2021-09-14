@@ -11,6 +11,7 @@ pub struct Project {
 }
 
 pub fn generate_project<P: AsRef<Path>>(name: String, project_path: P) -> Result<()> {
+    let mut proj_path = std::env::current_dir()?;
     let mut real_path = PathBuf::new();
     real_path.push(project_path);
     real_path.push(&name);
@@ -43,6 +44,8 @@ pub fn generate_project<P: AsRef<Path>>(name: String, project_path: P) -> Result
     sub_dir_path.pop();
     let mut context = TeraContext::new();
     context.insert("PROJ_NAME", &name);
+    proj_path.push(&name);
+    context.insert("BASE_PROJ_PATH", &proj_path.as_path().to_str());
     for path in TEMPLATES.get_template_names() {
         if path.starts_with("dapp") {
             continue;

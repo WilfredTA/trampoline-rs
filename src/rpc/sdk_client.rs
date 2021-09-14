@@ -14,11 +14,19 @@ pub fn get_sudt_tx_info(url: &str) -> Result<TransactionWithStatus> {
     get_cached_tx_info(url, "./.trampoline/deployed/sudt-tx")
 }
 
-fn get_cached_tx_info<P: AsRef<Path>>(url: &str, path: P) -> Result<TransactionWithStatus> {
+pub fn get_cached_tx_info<P: AsRef<Path>>(url: &str, path: P) -> Result<TransactionWithStatus> {
     let mut client = HttpRpcClient::new(url.to_string());
     let tx_hash = read_cached_tx_hash(path)?;
     let tx_view = client.get_transaction(tx_hash).unwrap();
     //println!("Transaction retrieved: {:?}", tx_view);
+    Ok(tx_view.unwrap())
+}
+
+pub fn display_cached_tx_info<P: AsRef<Path>>(url: &str, path: P) -> Result<TransactionWithStatus> {
+    let mut client = HttpRpcClient::new(url.to_string());
+    let tx_hash = read_cached_tx_hash(path)?;
+    let tx_view = client.get_transaction(tx_hash).unwrap();
+    println!("Transaction retrieved: {:?}", tx_view);
     Ok(tx_view.unwrap())
 }
 

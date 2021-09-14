@@ -1,0 +1,17 @@
+[trampoline]
+name = "{{PROJ_NAME}}"
+mode = "dev"
+path = "{{BASE_PROJ_PATH}}"
+
+[[default_contracts]]
+name = "pwlock"
+path = "deps/pw-lock/specs/cells/secp256k1_keccak256_sighash_all"
+
+[[default_contracts]]
+name = "sudt"
+path = "deps/ckb-scripts/build/simple_udt"
+
+[[contracts]]
+name = "dummy"
+path = "dummy"
+
