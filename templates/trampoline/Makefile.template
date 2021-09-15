@@ -37,7 +37,7 @@ start-miner:
 	docker exec -d -w /ckb/dev {{PROJ_NAME}} ../ckb/ckb miner
 
 start-indexer:
-	docker exec -d -w /indexer defi_dapp ./ckb-indexer -l 0.0.0.0:8114 -s ./data
+	docker exec -d -w /indexer {{PROJ_NAME}} ./ckb-indexer -l 0.0.0.0:8116 -s ./data
 
 deploy-sudt-local:
 	docker exec {{PROJ_NAME}} sh -c '/ckb/ckb/ckb-cli wallet transfer --type-id \
