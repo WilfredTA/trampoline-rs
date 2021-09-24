@@ -41,4 +41,5 @@ COPY deps/ckb-scripts/build/open_transaction /scripts/misc/
 
 RUN mkdir -p trampoline/deployed
 
-EXPOSE 8114 8115
+
+EXPOSE 8114 8115 8116

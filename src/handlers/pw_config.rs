@@ -6,7 +6,9 @@ use ckb_jsonrpc_types::{
     CellDep as RpcCellDep, DepType, JsonBytes, OutPoint as RpcOutpoint, Script as RpcScript,
     ScriptHashType, TransactionWithStatus, Uint32,
 };
-use ckb_types::{bytes::Bytes, core, prelude::*, H256};
+use ckb_sdk::{Address, AddressPayload, AddressType};
+use ckb_types::{bytes::Bytes, core::{self, ScriptHashType as CoreScriptHashType}, prelude::*, H256};
+use ckb_hash::new_blake2b;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::borrow::Borrow;
@@ -15,14 +17,17 @@ use std::fs;
 use std::path::Path;
 use std::str::FromStr;
 use toml;
+use ckb_types::packed::{Byte32, Byte};
+
 
 #[derive(Clone, Debug, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-struct Script {
+pub struct Script {
     code_hash: H256,
     hash_type: ScriptHashType,
     args: JsonBytes,
 }
+
 #[derive(Clone, Debug, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 struct OutPoint {
@@ -228,6 +233,8 @@ fn gen_default_lock_config(sys_cells: &Vec<SysCellConfig>) -> Result<PwScriptRef
     Ok(lock_pw_obj)
 }
 
+// To do: code_hash should be hash of the script attached to sudt type output, not
+// the code hash contained within the sudt output type script.
 fn gen_sudt_config() -> Result<PwScriptRef> {
     let sudt_info = get_sudt_tx_info(DEV_RPC_URL)?;
     let tx_hash = sudt_info.transaction.hash;
@@ -238,18 +245,24 @@ fn gen_sudt_config() -> Result<PwScriptRef> {
         .unwrap()
         .code_hash
         .clone();
-    let args = "0x";
+    let args = sudt_info.transaction.inner.outputs[0]
+        .type_
+        .as_ref()
+        .unwrap()
+        .args
+        .clone();
 
-    let args = hex::decode(args.trim_start_matches("0x"))?;
-    let args = Bytes::copy_from_slice(args.as_slice());
-    println!("Args as bytes: {:?}", args);
-    let args = JsonBytes::from_bytes(args);
+    // let args = hex::decode(args.trim_start_matches("0x"))?;
+    // let args = Bytes::copy_from_slice(args.as_slice());
+    // println!("Args as bytes: {:?}", args);
+    // let args = JsonBytes::from_bytes(args);
 
     let script = Script {
         code_hash,
         hash_type: ScriptHashType::Type,
         args,
     };
+    let script = gen_script_dep(script)?;
 
     let index = Uint32::from(index);
     let out_point = OutPoint { tx_hash, index };
@@ -268,31 +281,66 @@ fn gen_sudt_config() -> Result<PwScriptRef> {
     Ok(sudt_pw_obj)
 }
 
+pub fn gen_script_dep(type_script_on_dep: Script) -> Result<Script> {
+   // args as default
+    // code_hash as the hash of the input script
+    // hashtype = type
+    // To hash the script, first must serialize the script appropriately.
+    // First, Byte32 as code hash
+    // Second, Byte as hash_type,
+    // Third, Bytes as args
+    let mut script = ckb_jsonrpc_types::Script::default();
+    script.hash_type = type_script_on_dep.hash_type;
+    script.code_hash = type_script_on_dep.code_hash;
+    script.args = type_script_on_dep.args;
+
+    let packed_script = ckb_types::packed::Script::from(script);
+    let mut script_hash = packed_script.calc_script_hash();
+
+    Ok(Script {
+        code_hash: script_hash.unpack(),
+        hash_type: ScriptHashType::Type,
+        args: JsonBytes::default(),
+    })
+}
+
 fn gen_pwlock_config() -> Result<PwScriptRef> {
     let pwlock_info = get_pw_tx_info(DEV_RPC_URL)?;
-    let tx_hash = pwlock_info.transaction.hash;
+    let tx_hash = pwlock_info.clone().transaction.hash;
     let index: u32 = 0;
-    println!("PW LOCK TX: {:?}", pwlock_info.transaction.inner);
-    let code_hash = pwlock_info.transaction.inner.outputs[0]
+   // println!("PW LOCK TX: {:?}", pwlock_info.transaction.inner);
+    let code_hash = pwlock_info.clone().transaction.inner.outputs[0]
         .type_
         .as_ref()
         .unwrap()
         .code_hash
         .clone();
-    let args = "0x";
 
-    let args = hex::decode(args.trim_start_matches("0x"))?;
-    let args = Bytes::copy_from_slice(args.as_slice());
-    println!("Args as bytes: {:?}", args);
-    let args = JsonBytes::from_bytes(args);
+    println!("CODE HASH: {:?}", code_hash.to_string());
 
+    let args = pwlock_info.clone().transaction.inner.outputs[0]
+        .type_
+        .as_ref()
+        .unwrap()
+        .args
+        .clone();
+    println!("ARGS: {:?}", hex::encode(args.as_bytes()));
+    // let args = hex::decode(args.trim_start_matches("0x"))?;
+    // let args = Bytes::copy_from_slice(args.as_slice());
+    // println!("Args as bytes: {:?}", args);
+    // let args = JsonBytes::from_bytes(args);
+
+    // Gen address
     let script = Script {
         code_hash,
         hash_type: ScriptHashType::Type,
         args,
     };
 
+    let script = gen_script_dep(script)?;
+    println!("SCRIPT DEP: {:?}", script);
     let index = Uint32::from(index);
+    println!("INDEX: {:?}", index);
     let out_point = OutPoint { tx_hash, index };
 
     let cell_dep = CellDep {

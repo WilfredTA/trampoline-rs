@@ -1,6 +1,8 @@
 pub mod handlers;
 pub mod opts;
 pub mod rpc;
+mod sdk;
+
 use anyhow::Result;
 use ckb_types::H256;
 use serde::{Deserialize, Serialize};

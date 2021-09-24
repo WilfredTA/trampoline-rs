@@ -23,6 +23,13 @@ ckb-sdk = "0.43.0"
 toml = "0.5.8"
 hex = "0.4.3"
 tempfile = "3.1.0"
+k256 = "0.9.6"
+tiny-keccak = {version ="2.0.2" , features = ["sha3"]}
+ckb-crypto = "0.100.0"
+bech32 = "0.8.1"
+ckb-hash = "0.100.0"
+ethers = { git = "https://github.com/gakonst/ethers-rs" }
+tracing = {version = "0.1.28"}
 
 [build-dependencies]
 includedir_codegen = "0.6"

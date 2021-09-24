@@ -25,7 +25,7 @@ ckb-scripts:
 
 start-docker:
 	docker build . -t iamm/trampoline-env:latest
-	docker run --rm -d -it -p 8114:8114 -p 8115:8115 --name {{PROJ_NAME}} iamm/trampoline-env:latest
+	docker run --rm -d -it -p 8114:8114 -p 8115:8115 -p 8116:8116 --name {{PROJ_NAME}} iamm/trampoline-env:latest
 
 stop-docker:
 	docker stop {{PROJ_NAME}}
