@@ -5,7 +5,7 @@ path = "{{BASE_PROJ_PATH}}"
 
 [[default_contracts]]
 name = "pwlock"
-path = "deps/pw-lock/specs/cells/secp256k1_keccak256_sighash_all"
+path = "deps/pw-lock/specs/cells/pw_anyone_can_pay"
 
 [[default_contracts]]
 name = "sudt"

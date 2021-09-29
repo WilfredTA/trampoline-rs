@@ -4,7 +4,7 @@ use anyhow::Result;
 use ckb_types::H256;
 use std::path::PathBuf;
 use std::str::FromStr;
-use trampoline::handlers::{create_ckb_dapp, deploy, new_project, pw_config};
+use trampoline::handlers::{create_ckb_dapp, deploy, new_project, pw_config, faucet};
 use trampoline::opts::{
     ContractDeployInfo, DappDeployInfo, DeployCommands, Opts, TrampolineCommand,
 };
@@ -45,6 +45,10 @@ async fn main() -> Result<()> {
         }
         TrampolineCommand::CreateCkbDapp { name } => {
             create_ckb_dapp::create(name);
+        }
+        TrampolineCommand::Faucet {target, amount} => {
+            let container_name = &config.trampoline.name;
+            faucet::transfer_from_genesis(target.as_str(), container_name.as_str(), amount.as_str())?;
         }
         TrampolineCommand::Deploy { deploy_plan } => match deploy_plan {
             DeployCommands::Contract { contract } => {

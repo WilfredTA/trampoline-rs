@@ -11,7 +11,7 @@ initialize:
 	git init
 	mkdir deps/pw-lock
 	mkdir deps/ckb-scripts
-	git clone --recurse-submodules https://github.com/wilfredTA/pw-lock ./deps/pw-lock
+	git clone --branch develop --recurse-submodules https://github.com/wilfredTA/pw-lock ./deps/pw-lock
 	git clone --recurse-submodules https://github.com/nervosnetwork/ckb-miscellaneous-scripts  ./deps/ckb-scripts
 	cd ./deps/ckb-scripts; git checkout 60c2e7388e46ef7c2701a98472b64a038092ec1a
 
@@ -54,6 +54,6 @@ deploy-pw-lock-local:
 --privkey-path /ckb_dummy_accounts/genesis1 \
 --to-address ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37 \
 --tx-fee 0.01 \
---capacity 80000 \
---to-data-path /scripts/pw/secp256k1_keccak256_sighash_all > /trampoline/deployed/pwlock-tx';
+--capacity 100000 \
+--to-data-path /scripts/pw/pw_anyone_can_pay > /trampoline/deployed/pwlock-tx';
 	docker cp {{PROJ_NAME}}:/trampoline/deployed/pwlock-tx ./.trampoline/deployed/

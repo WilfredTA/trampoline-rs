@@ -123,10 +123,10 @@ pub fn gen_config() -> Result<DappConfig> {
     let hashes_json = fs::read_to_string("./ckb-hashes.json")?;
     let chain_config: ChainConfig = serde_json::from_str(hashes_json.as_str())?;
     let sys_cells = &chain_config.ckb_dev.system_cells;
-    let dao_type = gen_syscell_config(sys_cells, SysCellSelected::DaoType)?;
-    let default_lock = gen_syscell_config(sys_cells, SysCellSelected::DefaultLock)?;
-    let sudt_type = gen_syscell_config(sys_cells, SysCellSelected::Sudt)?;
-    let pw_lock = gen_syscell_config(sys_cells, SysCellSelected::PwLock)?;
+    let dao_type = gen_syscell_config(&chain_config, SysCellSelected::DaoType)?;
+    let default_lock = gen_syscell_config(&chain_config, SysCellSelected::DefaultLock)?;
+    let sudt_type = gen_syscell_config(&chain_config, SysCellSelected::Sudt)?;
+    let pw_lock = gen_syscell_config(&chain_config, SysCellSelected::PwLock)?;
     let multi_sig_lock = gen_multisig_config()?;
     let acp_lock_list = gen_acp_lock_list_config()?;
 
@@ -180,7 +180,7 @@ fn gen_multisig_config() -> Result<PwScriptRef> {
     Ok(PwScriptRef { cell_dep, script })
 }
 fn gen_syscell_config(
-    sys_cells: &Vec<SysCellConfig>,
+    sys_cells: &ChainConfig,
     type_: SysCellSelected,
 ) -> Result<PwScriptRef> {
     return match type_ {
@@ -191,7 +191,8 @@ fn gen_syscell_config(
     };
 }
 
-fn gen_dao_config(sys_cells: &Vec<SysCellConfig>) -> Result<PwScriptRef> {
+fn gen_dao_config(sys_cells: &ChainConfig) -> Result<PwScriptRef> {
+    let sys_cells = &sys_cells.ckb_dev.system_cells;
     let mut raw_dao_out = RawOutpoint {
         tx_hash: sys_cells[1].tx_hash.clone(),
         code_hash: sys_cells[1].type_hash.as_ref().unwrap().clone(),
@@ -210,15 +211,17 @@ fn gen_dao_config(sys_cells: &Vec<SysCellConfig>) -> Result<PwScriptRef> {
     Ok(dao_pw_obj)
 }
 
-fn gen_default_lock_config(sys_cells: &Vec<SysCellConfig>) -> Result<PwScriptRef> {
+fn gen_default_lock_config(sys_cells: &ChainConfig) -> Result<PwScriptRef> {
+    let dep_groups = &sys_cells.ckb_dev.dep_groups;
+    let sys_cells = &sys_cells.ckb_dev.system_cells;
     let mut raw_lock_out = RawOutpoint {
-        tx_hash: sys_cells[0].tx_hash.clone(),
+        tx_hash: dep_groups[0].tx_hash.clone(),
         code_hash: sys_cells[0].type_hash.as_ref().unwrap().clone(),
-        index: sys_cells[0].index.clone(),
+        index: dep_groups[0].index.clone(),
     };
 
     let lock_script = build_script(&raw_lock_out.code_hash, "type", "0x")?;
-    let lock_dep = build_cell_dep(&raw_lock_out.tx_hash, raw_lock_out.index, "code")?;
+    let lock_dep = build_cell_dep(&raw_lock_out.tx_hash, raw_lock_out.index, "group")?;
 
     let lock_pw_obj = PwScriptRef {
         script: lock_script,
