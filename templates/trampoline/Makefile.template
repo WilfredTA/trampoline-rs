@@ -9,15 +9,12 @@ scripts: pw-lock ckb-scripts
 
 initialize:
 	git init
-	mkdir deps/pw-lock
 	mkdir deps/ckb-scripts
-	git clone --branch develop --recurse-submodules https://github.com/wilfredTA/pw-lock ./deps/pw-lock
 	git clone --recurse-submodules https://github.com/nervosnetwork/ckb-miscellaneous-scripts  ./deps/ckb-scripts
 	cd ./deps/ckb-scripts; git checkout 60c2e7388e46ef7c2701a98472b64a038092ec1a
 
 pw-lock:
-	cd deps/pw-lock; git submodule update --recursive
-	cd deps/pw-lock; make all-via-docker
+	node pwLockBin.js
 
 ckb-scripts:
 	git submodule update --recursive

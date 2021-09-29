@@ -33,7 +33,7 @@ RUN cd /indexer && tar -xf ckb-indexer-linux-x86_64.tar.gz
 RUN cd /indexer & mkdir ./data
 
 RUN mkdir -p /scripts/pw
-COPY deps/pw-lock/specs/cells/* /scripts/pw/
+COPY pw_anyone_can_pay /scripts/pw/
 
 RUN mkdir -p scripts/misc
 COPY deps/ckb-scripts/build/simple_udt /scripts/misc/
