@@ -9,8 +9,8 @@ scripts: pw-lock ckb-scripts
 
 initialize:
 	git init
-	mkdir deps/pw-lock
-	mkdir deps/ckb-scripts
+	mkdir -p deps/pw-lock
+	mkdir -p deps/ckb-scripts
 	git clone --recurse-submodules https://github.com/wilfredTA/pw-lock ./deps/pw-lock
 	git clone --recurse-submodules https://github.com/nervosnetwork/ckb-miscellaneous-scripts  ./deps/ckb-scripts
 	cd ./deps/ckb-scripts; git checkout 60c2e7388e46ef7c2701a98472b64a038092ec1a
