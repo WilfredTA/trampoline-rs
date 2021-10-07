@@ -5,10 +5,12 @@ mod sdk;
 
 use anyhow::Result;
 use ckb_types::H256;
+use ckb_hash::blake2b_256;
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::path::{Path, PathBuf};
 use toml;
+use hex::{encode, decode};
 
 pub const DOCKER_IMAGE: &str = "iamm/trampoline-env:latest";
 pub const DEV_RPC_URL: &str = "http://127.0.0.1:8114";
@@ -68,5 +70,19 @@ impl TrampolineConfig {
         fs::write(path_to_config, toml::to_string(self)?)?;
 
         Ok(())
+    }
+}
+
+impl TrampolineContract {
+    pub fn to_data_hash(&self) -> Result<H256> {
+        let contract_bytes = fs::read(&self.path)?;
+        let hash = blake2b_256(contract_bytes);
+        let hash = H256::from(hash);
+        Ok(hash)
+    }
+
+    pub fn to_data_hash_str(&self) -> Result<String> {
+        let raw_hash = self.to_data_hash()?;
+        Ok(hex::encode(raw_hash))
     }
 }

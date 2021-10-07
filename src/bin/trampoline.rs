@@ -9,9 +9,10 @@ use trampoline::opts::{
     ContractDeployInfo, DappDeployInfo, DeployCommands, Opts, TrampolineCommand,
 };
 use trampoline::rpc::{
-    display_cached_tx_info, get_cached_tx_info, get_pw_tx_info, get_sudt_tx_info,
+    display_cached_tx_info, get_cached_tx_info, get_pw_tx_info, get_sudt_tx_info,get_tx_info
 };
 use trampoline::DEV_RPC_URL;
+use serde_json;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -60,7 +61,8 @@ async fn main() -> Result<()> {
                     deploy::deploy_local(contract_name, container_name.as_str(), contract_path)?;
                 println!("Hash of Deployment Transaction: {}", hash);
 
-                let new_contract = trampoline::TrampolineContract {
+
+                let mut new_contract = trampoline::TrampolineContract {
                     name: contract_name.to_string(),
                     path: contract_path.to_string(),
                     tx_hash: Some(H256::from_str(
@@ -70,6 +72,8 @@ async fn main() -> Result<()> {
                     type_hash: None,
                 };
 
+                new_contract.data_hash = Some(new_contract.to_data_hash()?);
+
                 config.add_contract(new_contract)?.save()?;
             }
             _ => {}
@@ -77,6 +81,17 @@ async fn main() -> Result<()> {
         TrampolineCommand::HealthCheck => {
             let context = trampoline::load_context()?;
             println!("Loaded context: {:?}", context);
+        }
+        TrampolineCommand::GetTx {hash} => {
+            let mut hash = hash.as_str();
+            if hash.starts_with("0x") {
+                hash = hash.trim_start_matches("0x");
+            }
+            let tx_hash = H256::from_str(&hash)?;
+
+            let tx = get_tx_info("http://localhost:8114/", tx_hash)?;
+            let to_disp = serde_json::json!(tx);
+            println!("{}",to_disp);
         }
         _ => {
             println!("No other commands yet");

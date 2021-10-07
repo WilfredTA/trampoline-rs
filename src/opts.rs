@@ -26,6 +26,10 @@ pub enum TrampolineCommand {
         #[structopt(flatten)]
         deploy_plan: DeployCommands,
     },
+    #[structopt(name = "get-tx")]
+    GetTx {
+        hash: String
+    },
     #[structopt(name = "health-check")]
     HealthCheck,
 }
