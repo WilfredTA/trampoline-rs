@@ -2,9 +2,7 @@
 
 The framework for building powerful dApps on the number one UTXO chain, Nervos Network CKB.
 
-*This is an early-stage, currently very incomplete port of IAMM Network's Trampoline to Rust*
-
-*Why port it to Rust? Because I was tired of NPM*
+*This software is currently in early-stage, pre-alpha development*
 
 ## Installation
 
