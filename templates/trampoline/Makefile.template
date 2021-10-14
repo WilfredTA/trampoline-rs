@@ -9,15 +9,12 @@ scripts: pw-lock ckb-scripts
 
 initialize:
 	git init
-	mkdir deps/pw-lock
 	mkdir deps/ckb-scripts
-	git clone --recurse-submodules https://github.com/wilfredTA/pw-lock ./deps/pw-lock
 	git clone --recurse-submodules https://github.com/nervosnetwork/ckb-miscellaneous-scripts  ./deps/ckb-scripts
 	cd ./deps/ckb-scripts; git checkout 60c2e7388e46ef7c2701a98472b64a038092ec1a
 
 pw-lock:
-	cd deps/pw-lock; git submodule update --recursive
-	cd deps/pw-lock; make all-via-docker
+	node pwLockBin.js
 
 ckb-scripts:
 	git submodule update --recursive
@@ -25,7 +22,7 @@ ckb-scripts:
 
 start-docker:
 	docker build . -t iamm/trampoline-env:latest
-	docker run --rm -d -it -p 8114:8114 -p 8115:8115 --name {{PROJ_NAME}} iamm/trampoline-env:latest
+	docker run --rm -d -it -p 8114:8114 -p 8115:8115 -p 8116:8116 --name {{PROJ_NAME}} iamm/trampoline-env:latest
 
 stop-docker:
 	docker stop {{PROJ_NAME}}
@@ -54,6 +51,6 @@ deploy-pw-lock-local:
 --privkey-path /ckb_dummy_accounts/genesis1 \
 --to-address ckt1qyqvsv5240xeh85wvnau2eky8pwrhh4jr8ts8vyj37 \
 --tx-fee 0.01 \
---capacity 80000 \
---to-data-path /scripts/pw/secp256k1_keccak256_sighash_all > /trampoline/deployed/pwlock-tx';
+--capacity 100000 \
+--to-data-path /scripts/pw/pw_anyone_can_pay > /trampoline/deployed/pwlock-tx';
 	docker cp {{PROJ_NAME}}:/trampoline/deployed/pwlock-tx ./.trampoline/deployed/

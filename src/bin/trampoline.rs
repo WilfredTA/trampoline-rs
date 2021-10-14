@@ -4,14 +4,15 @@ use anyhow::Result;
 use ckb_types::H256;
 use std::path::PathBuf;
 use std::str::FromStr;
-use trampoline::handlers::{create_ckb_dapp, deploy, new_project, pw_config};
+use trampoline::handlers::{create_ckb_dapp, deploy, new_project, pw_config, faucet};
 use trampoline::opts::{
     ContractDeployInfo, DappDeployInfo, DeployCommands, Opts, TrampolineCommand,
 };
 use trampoline::rpc::{
-    display_cached_tx_info, get_cached_tx_info, get_pw_tx_info, get_sudt_tx_info,
+    display_cached_tx_info, get_cached_tx_info, get_pw_tx_info, get_sudt_tx_info,get_tx_info
 };
 use trampoline::DEV_RPC_URL;
+use serde_json;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -46,6 +47,10 @@ async fn main() -> Result<()> {
         TrampolineCommand::CreateCkbDapp { name } => {
             create_ckb_dapp::create(name);
         }
+        TrampolineCommand::Faucet {target, amount} => {
+            let container_name = &config.trampoline.name;
+            faucet::transfer_from_genesis(target.as_str(), container_name.as_str(), amount.as_str())?;
+        }
         TrampolineCommand::Deploy { deploy_plan } => match deploy_plan {
             DeployCommands::Contract { contract } => {
                 let container_name = &config.trampoline.name;
@@ -56,7 +61,8 @@ async fn main() -> Result<()> {
                     deploy::deploy_local(contract_name, container_name.as_str(), contract_path)?;
                 println!("Hash of Deployment Transaction: {}", hash);
 
-                let new_contract = trampoline::TrampolineContract {
+
+                let mut new_contract = trampoline::TrampolineContract {
                     name: contract_name.to_string(),
                     path: contract_path.to_string(),
                     tx_hash: Some(H256::from_str(
@@ -66,6 +72,8 @@ async fn main() -> Result<()> {
                     type_hash: None,
                 };
 
+                new_contract.data_hash = Some(new_contract.to_data_hash()?);
+
                 config.add_contract(new_contract)?.save()?;
             }
             _ => {}
@@ -73,6 +81,17 @@ async fn main() -> Result<()> {
         TrampolineCommand::HealthCheck => {
             let context = trampoline::load_context()?;
             println!("Loaded context: {:?}", context);
+        }
+        TrampolineCommand::GetTx {hash} => {
+            let mut hash = hash.as_str();
+            if hash.starts_with("0x") {
+                hash = hash.trim_start_matches("0x");
+            }
+            let tx_hash = H256::from_str(&hash)?;
+
+            let tx = get_tx_info("http://localhost:8114/", tx_hash)?;
+            let to_disp = serde_json::json!(tx);
+            println!("{}",to_disp);
         }
         _ => {
             println!("No other commands yet");

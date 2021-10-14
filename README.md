@@ -2,9 +2,7 @@
 
 The framework for building powerful dApps on the number one UTXO chain, Nervos Network CKB.
 
-*This is an early-stage, currently very incomplete port of IAMM Network's Trampoline to Rust*
-
-*Why port it to Rust? Because I was tired of NPM*
+*This software is currently in early-stage, pre-alpha development*
 
 ## Installation
 
@@ -35,16 +33,26 @@ Navigate to your project's directory and you can get started with two commands:
 
 ```bash
 make all
-make deploy-all
+make deploy-sudt-local
+make deploy-pw-lock-local
 ```
 
-The first command will set everything up, including your docker environment & start a local ckb node & miner.
-The second command will deploy important scripts and then execute the `trampoline pwconfig` command to generate the
-config file for front end dapps that use `pw-core`.
+### Generate dapp config
+Your dapp config is a variation of the config file expected by PW-SDK, which is a JavaScript framework for building front ends that interact with CKB.
 
-I recommend waiting a few seconds between running `make all` and `make deploy-all`, since the deploy-all recipe
-*sometimes* fails if the ckb node is still initializing. Usually, waiting about 2-3 seconds suffices. If 
-`make deploy-all` fails, you don't have to do anything besides re-run the command.
+After scripts are deployed, you can run `trampoline pwconfig` to generate a `PwConfig.json` file, which can be moved to your trampoline project's `dapp/<dapp_name>` directory for use in your front end.
+
+
+### Deploy custom scripts
+
+`trampoline deploy --name my_awesome_smart_contract --path /path/to/compiled/contract`
+
+This will also generate the configuration files necessary to interact with your script on the dapp side. This includes:
+1. The outpoint of the script
+2. The `Script` struct to attach to cells that use the deployed contract
+3. The data hash and type hash of the script
+
+
 
 ### React-based Dapp
 

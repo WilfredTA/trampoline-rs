@@ -1,17 +1,45 @@
-use anyhow::{Context, Result};
-use ckb_sdk::rpc::{CellDep, OutPoint, Script, TransactionView, TransactionWithStatus};
+use anyhow::{Context, Error, Result};
+use ckb_sdk::rpc::{CellDep, OutPoint as RpcOutPoint, Script, TransactionView, TransactionWithStatus};
 use ckb_sdk::HttpRpcClient;
 use ckb_types::H256;
 use std::fs;
 use std::path::Path;
 use std::str::FromStr;
+use ckb_jsonrpc_types::CellWithStatus;
+use ckb_types::packed::OutPoint;
+use ckb_types::core::cell::CellMeta;
+use ckb_types::prelude::{Builder, Entity, Pack};
 
+
+pub fn get_cell_info(url: &str, tx_hash: H256, idx: u32) -> Result<CellWithStatus> {
+    let mut client = HttpRpcClient::new(url.to_string());
+    let mut outpoint = OutPoint::new_builder()
+        .tx_hash(tx_hash.pack())
+        .index(idx.pack())
+        .build();
+
+    let res = client.get_live_cell(outpoint, true);
+    match res {
+        core::result::Result::Ok(cell) => {
+            return Ok(cell);
+        }
+        core::result::Result::Err(e) => {
+            return Err(anyhow::anyhow!(e));
+        }
+    }
+}
 pub fn get_pw_tx_info(url: &str) -> Result<TransactionWithStatus> {
     get_cached_tx_info(url, "./.trampoline/deployed/pwlock-tx")
 }
 
 pub fn get_sudt_tx_info(url: &str) -> Result<TransactionWithStatus> {
     get_cached_tx_info(url, "./.trampoline/deployed/sudt-tx")
+}
+
+pub fn get_tx_info(url: &str, tx_hash: H256) -> Result<TransactionWithStatus> {
+    let mut client = HttpRpcClient::new(url.to_string());
+    let tx_view = client.get_transaction(tx_hash).unwrap();
+    Ok(tx_view.unwrap())
 }
 
 pub fn get_cached_tx_info<P: AsRef<Path>>(url: &str, path: P) -> Result<TransactionWithStatus> {
