@@ -35,10 +35,27 @@ Navigate to your project's directory and you can get started with two commands:
 trampoline start --with-git-init --with-deploy-scripts
 ```
 
-### Generate dapp config
-Your dapp config is a variation of the config file expected by PW-SDK, which is a JavaScript framework for building front ends that interact with CKB.
+### Deploy useful scripts
 
-After scripts are deployed, you can run `trampoline pwconfig` to generate a `PwConfig.json` file, which can be moved to your trampoline project's `dapp/<dapp_name>` directory for use in your front end.
+Useful scripts that may be used by dapp developers include:
+1. pw-lock: This script enables dapp users to sign transactions with their ethereum keys, thereby enabling tx signing with, e.g., metamask
+2. sudt: This script enables the creation of SUDTs - or simple user defined tokens - the ckb analogue of ERC20 fungible tokens.
+
+To deploy these to chain, ensure you've already run `trampoline start`. Then, run `trampoline deploy-default-scripts`.
+
+You can check the status of the deployment transactions with `trampoline deployed sudt` and `trampoline deployed pwlock`.
+
+
+### Generate dapp config
+Your dapp config is a variation of the config file expected by PW-SDK. PW-SDK is a useful tool for building front-end 
+apps that interact with ckb, and enables metamask compatibility.
+
+After scripts are deployed, you can run `trampoline pwconfig` to generate a `PwConfig.json` file. 
+
+which can be moved to your trampoline project's `dapp/<dapp_name>/src` directory for use in your front end.
+
+If you've created your dapp already with `trampoline create-ckb-dapp <dapp_name>`, then this file will be automatically
+placed in your dapp's src folder for you.
 
 
 ### Deploy custom scripts
