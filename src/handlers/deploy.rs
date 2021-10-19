@@ -1,13 +1,7 @@
 use anyhow::Result;
 use std::fs;
-use std::io::Write;
-use std::path::{Path, PathBuf};
-use std::process::{self, Command, Stdio};
-use std::str::FromStr;
-use tempfile::{tempdir, tempfile};
-use tera::Context;
-use serde_json;
-use crate::rpc::get_cell_info;
+use std::path::Path;
+use std::process::{Command, Stdio};
 
 pub fn deploy_local(name: &str, container_name: &str, path: &str) -> Result<String> {
     let local_path = Path::new(path).canonicalize()?;
@@ -47,7 +41,9 @@ fn deploy_to_net(name: &str, container_name: &str, bytes_len: usize) -> Result<(
 --tx-fee 0.01 \
 --capacity {} \
 --to-data-path /trampoline/{} > /trampoline/deployed/{}-tx",
-        bytes_len + 300, name, name
+        bytes_len + 300,
+        name,
+        name
     );
     let docker_to_net = Command::new("docker")
         .args([
@@ -79,7 +75,6 @@ fn copy_tx_to_local(name: &str, container_name: &str) -> Result<String> {
         .wait()?;
 
     let tx_hash = fs::read_to_string(local_path.as_str())?;
-
 
     Ok(tx_hash)
 }

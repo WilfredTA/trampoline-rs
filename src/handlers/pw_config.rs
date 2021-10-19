@@ -1,24 +1,16 @@
-use crate::rpc::*;
 use crate::rpc::{get_pw_tx_info, get_sudt_tx_info};
-use crate::DEV_RPC_URL;
+use crate::{TrampolineConfig, DEV_RPC_URL};
 use anyhow::Result;
-use ckb_jsonrpc_types::{
-    CellDep as RpcCellDep, DepType, JsonBytes, OutPoint as RpcOutpoint, Script as RpcScript,
-    ScriptHashType, TransactionWithStatus, Uint32,
-};
-use ckb_sdk::{Address, AddressPayload, AddressType};
-use ckb_types::{bytes::Bytes, core::{self, ScriptHashType as CoreScriptHashType}, prelude::*, H256};
-use ckb_hash::new_blake2b;
+use ckb_jsonrpc_types::{DepType, JsonBytes, ScriptHashType, Uint32};
+
+use ckb_types::{bytes::Bytes, prelude::*, H256};
 use serde::{Deserialize, Serialize};
 use serde_json;
-use std::borrow::Borrow;
-use std::convert::TryFrom;
+
 use std::fs;
-use std::path::Path;
+use std::path::PathBuf;
 use std::str::FromStr;
 use toml;
-use ckb_types::packed::{Byte32, Byte};
-
 
 #[derive(Clone, Debug, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -94,6 +86,23 @@ pub struct DepGroupConfig {
     pub index: u32,
 }
 
+impl ChainConfig {
+    pub fn new(project: &TrampolineConfig) -> Result<Self> {
+        let root_path = PathBuf::from_str(&project.trampoline.path)?;
+        let toml_ = fs::read_to_string(root_path.join("ckb-hashes.toml"))?;
+        let decoded: ChainConfig = toml::from_str(toml_.as_str())?;
+        Ok(decoded)
+    }
+
+    pub fn save_as_json(&self, project: &TrampolineConfig) -> Result<()> {
+        let root_path = PathBuf::from_str(&project.trampoline.path)?;
+        let as_json = serde_json::to_string(&self)?;
+        let as_json = as_json.as_str();
+        fs::write(root_path.join("ckb-hashes.json"), as_json)?;
+        Ok(())
+    }
+}
+
 pub fn read_hash_toml() -> Result<ChainConfig> {
     let toml_ = fs::read_to_string("./ckb-hashes.toml")?;
     let decoded: ChainConfig = toml::from_str(toml_.as_str())?;
@@ -117,16 +126,68 @@ enum SysCellSelected {
     Sudt,
 }
 
+pub fn gen_custom_cell_config(
+    name: &str,
+    proj_config: &TrampolineConfig,
+) -> Result<(PwScriptRef, PathBuf)> {
+    let mut path_to = PathBuf::from_str(&proj_config.trampoline.path)?;
+    path_to = path_to
+        .join("contract_configs")
+        .join(format!("{}.json", name));
+    println!("PATH TO SAVE FILE: {:?}", path_to);
+    if let Some(contracts) = &proj_config.contracts {
+        let target = contracts.iter().find(|contract| contract.name == name);
+        if let Some(contract) = target {
+            let contract_outpoint = OutPoint {
+                tx_hash: contract.tx_hash.as_ref().unwrap().clone(),
+                index: Uint32::from(0),
+            };
+            let contract_cell_dep = CellDep {
+                out_point: contract_outpoint,
+                dep_type: DepType::Code,
+            };
+
+            let contract_script = Script {
+                code_hash: contract.data_hash.as_ref().unwrap().clone(),
+                hash_type: ScriptHashType::Data,
+                args: JsonBytes::default(),
+            };
+            let finalized = PwScriptRef {
+                cell_dep: contract_cell_dep,
+                script: contract_script,
+            };
+
+            let script_ref_contents = serde_json::to_string(&finalized)?;
+            fs::write(&path_to, &script_ref_contents)?;
+            path_to.pop();
+            path_to.pop();
+
+            if let Some(dapp_name) = &proj_config.trampoline.dapp_name {
+                path_to = path_to
+                    .join(format!("dapp/{}/src", dapp_name))
+                    .join(format!("{}.json", name));
+                fs::write(&path_to, &script_ref_contents)?;
+            }
+            Ok((finalized, path_to))
+        } else {
+            Err(anyhow::Error::msg(
+                "Tried to generate a config for a script that is not yet deployed",
+            ))
+        }
+    } else {
+        Err(anyhow::Error::msg(
+            "No deployed contracts found in trampoline.toml file",
+        ))
+    }
+}
 // To do: Remove using ckb_sdk types and take advantage of serialization implementations.
 // ckb_sdk types do not serialize exactly as required
-pub fn gen_config() -> Result<DappConfig> {
-    let hashes_json = fs::read_to_string("./ckb-hashes.json")?;
-    let chain_config: ChainConfig = serde_json::from_str(hashes_json.as_str())?;
+pub fn gen_config(chain_config: &ChainConfig) -> Result<DappConfig> {
     let sys_cells = &chain_config.ckb_dev.system_cells;
-    let dao_type = gen_syscell_config(&chain_config, SysCellSelected::DaoType)?;
-    let default_lock = gen_syscell_config(&chain_config, SysCellSelected::DefaultLock)?;
-    let sudt_type = gen_syscell_config(&chain_config, SysCellSelected::Sudt)?;
-    let pw_lock = gen_syscell_config(&chain_config, SysCellSelected::PwLock)?;
+    let dao_type = gen_syscell_config(chain_config, SysCellSelected::DaoType)?;
+    let default_lock = gen_syscell_config(chain_config, SysCellSelected::DefaultLock)?;
+    let sudt_type = gen_syscell_config(chain_config, SysCellSelected::Sudt)?;
+    let pw_lock = gen_syscell_config(chain_config, SysCellSelected::PwLock)?;
     let multi_sig_lock = gen_multisig_config()?;
     let acp_lock_list = gen_acp_lock_list_config()?;
 
@@ -141,7 +202,7 @@ pub fn gen_config() -> Result<DappConfig> {
 
     let dapp_config = DappConfig { dev: pw_config };
 
-    fs::write("./PwConfig.json", serde_json::to_string(&dapp_config)?)?;
+    // fs::write("./PwConfig.json", serde_json::to_string(&dapp_config)?)?;
     Ok(dapp_config)
 }
 
@@ -179,24 +240,21 @@ fn gen_multisig_config() -> Result<PwScriptRef> {
 
     Ok(PwScriptRef { cell_dep, script })
 }
-fn gen_syscell_config(
-    sys_cells: &ChainConfig,
-    type_: SysCellSelected,
-) -> Result<PwScriptRef> {
-    return match type_ {
+fn gen_syscell_config(sys_cells: &ChainConfig, type_: SysCellSelected) -> Result<PwScriptRef> {
+    match type_ {
         SysCellSelected::DaoType => gen_dao_config(sys_cells),
         SysCellSelected::DefaultLock => gen_default_lock_config(sys_cells),
         SysCellSelected::Sudt => gen_sudt_config(),
         SysCellSelected::PwLock => gen_pwlock_config(),
-    };
+    }
 }
 
 fn gen_dao_config(sys_cells: &ChainConfig) -> Result<PwScriptRef> {
     let sys_cells = &sys_cells.ckb_dev.system_cells;
-    let mut raw_dao_out = RawOutpoint {
+    let raw_dao_out = RawOutpoint {
         tx_hash: sys_cells[1].tx_hash.clone(),
         code_hash: sys_cells[1].type_hash.as_ref().unwrap().clone(),
-        index: sys_cells[1].index.clone(),
+        index: sys_cells[1].index,
     };
 
     let dao_script = build_script(&raw_dao_out.code_hash, "type", "0x")?;
@@ -214,10 +272,10 @@ fn gen_dao_config(sys_cells: &ChainConfig) -> Result<PwScriptRef> {
 fn gen_default_lock_config(sys_cells: &ChainConfig) -> Result<PwScriptRef> {
     let dep_groups = &sys_cells.ckb_dev.dep_groups;
     let sys_cells = &sys_cells.ckb_dev.system_cells;
-    let mut raw_lock_out = RawOutpoint {
+    let raw_lock_out = RawOutpoint {
         tx_hash: dep_groups[0].tx_hash.clone(),
         code_hash: sys_cells[0].type_hash.as_ref().unwrap().clone(),
-        index: dep_groups[0].index.clone(),
+        index: dep_groups[0].index,
     };
 
     let lock_script = build_script(&raw_lock_out.code_hash, "type", "0x")?;
@@ -285,7 +343,7 @@ fn gen_sudt_config() -> Result<PwScriptRef> {
 }
 
 pub fn gen_script_dep(type_script_on_dep: Script) -> Result<Script> {
-   // args as default
+    // args as default
     // code_hash as the hash of the input script
     // hashtype = type
     // To hash the script, first must serialize the script appropriately.
@@ -298,7 +356,7 @@ pub fn gen_script_dep(type_script_on_dep: Script) -> Result<Script> {
     script.args = type_script_on_dep.args;
 
     let packed_script = ckb_types::packed::Script::from(script);
-    let mut script_hash = packed_script.calc_script_hash();
+    let script_hash = packed_script.calc_script_hash();
 
     Ok(Script {
         code_hash: script_hash.unpack(),
@@ -311,8 +369,8 @@ fn gen_pwlock_config() -> Result<PwScriptRef> {
     let pwlock_info = get_pw_tx_info(DEV_RPC_URL)?;
     let tx_hash = pwlock_info.clone().transaction.hash;
     let index: u32 = 0;
-   // println!("PW LOCK TX: {:?}", pwlock_info.transaction.inner);
-    let code_hash = pwlock_info.clone().transaction.inner.outputs[0]
+    // println!("PW LOCK TX: {:?}", pwlock_info.transaction.inner);
+    let code_hash = pwlock_info.transaction.inner.outputs[0]
         .type_
         .as_ref()
         .unwrap()
@@ -321,7 +379,7 @@ fn gen_pwlock_config() -> Result<PwScriptRef> {
 
     println!("CODE HASH: {:?}", code_hash.to_string());
 
-    let args = pwlock_info.clone().transaction.inner.outputs[0]
+    let args = pwlock_info.transaction.inner.outputs[0]
         .type_
         .as_ref()
         .unwrap()

@@ -1,12 +1,5 @@
 use anyhow::Result;
-use std::fs;
-use std::io::Write;
-use std::path::{Path, PathBuf};
-use std::process::{self, Command, Stdio};
-use std::str::FromStr;
-use tempfile::{tempdir, tempfile};
-use tera::Context;
-
+use std::process::{Command, Stdio};
 
 pub fn transfer_from_genesis(target_addr: &str, container_name: &str, amount: &str) -> Result<()> {
     let transfer_string = format!(

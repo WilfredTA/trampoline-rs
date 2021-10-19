@@ -29,9 +29,9 @@ lazy_static! {
                 .expect("Failed to remove prefix in cra template");
             let content = {
                 let file_contents = CRA_FILES.get(path).expect("read template");
-                String::from_utf8(file_contents.to_vec()).unwrap_or_else(|err| {
+                String::from_utf8(file_contents.to_vec()).unwrap_or_else(|_err| {
                     println!("Got error when decoding utf8 content in file {}", name);
-                    return String::default();
+                    String::default()
                 })
             };
             let err_message = format!("Error adding template file: {} with name {}", path, name);
@@ -44,7 +44,7 @@ lazy_static! {
 
 pub mod create_ckb_dapp;
 pub mod deploy;
+pub mod faucet;
 pub mod new_project;
 pub mod pw_config;
 pub mod pw_transaction;
-pub mod faucet;

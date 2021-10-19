@@ -1,4 +1,3 @@
-use std::path::Path;
 use structopt::StructOpt;
 
 #[derive(Debug, StructOpt)]
@@ -15,23 +14,52 @@ pub enum TrampolineCommand {
     #[structopt(name = "faucet")]
     #[structopt(about = "Send ckbytes from genesis accounts to a personal address")]
     Faucet { target: String, amount: String },
-    #[structopt(name = "pwconfig")]
+    #[structopt(
+        name = "pwconfig",
+        about = "Generate json config file for built in scripts"
+    )]
     PwConfig,
-    #[structopt(name = "deployed")]
+    #[structopt(
+        name = "deployed",
+        about = "Get transaction information about a deployed contract"
+    )]
     GetDeployed { name: String },
     #[structopt(name = "create-ckb-dapp")]
     CreateCkbDapp { name: String },
-    #[structopt(name = "deploy")]
+    #[structopt(
+        name = "deploy",
+        about = "Deploy a custom contract to local environment"
+    )]
     Deploy {
         #[structopt(flatten)]
         deploy_plan: DeployCommands,
     },
-    #[structopt(name = "get-tx")]
-    GetTx {
-        hash: String
-    },
-    #[structopt(name = "health-check")]
+    #[structopt(name = "get-tx", about = "Retrieve a transaction by its hash")]
+    GetTx { hash: String },
+    #[structopt(name = "health-check", about = "Quick check for testing purposes")]
     HealthCheck,
+    #[structopt(
+        name = "import-dapp",
+        about = "Import a front end application into trampoline project"
+    )]
+    ImportDapp { name: String, path: String },
+    #[structopt(
+        name = "dapp-config",
+        about = "Generate json file for interacting with a deployed contract."
+    )]
+    DappConfig { name: String, save: Option<bool> },
+    #[structopt(name = "start", about = "Start local network")]
+    Start {
+        #[structopt(long = "with-git-init", parse(from_flag))]
+        with_git: bool,
+        #[structopt(long = "with-deploy-scripts", parse(from_flag))]
+        with_deploy_scripts: bool,
+    },
+    #[structopt(
+        name = "deploy-default-scripts",
+        about = "Deploy useful scripts such as sudt & pw-lock"
+    )]
+    DeployDefaultScripts {},
 }
 #[derive(Debug, StructOpt)]
 pub enum DeployCommands {

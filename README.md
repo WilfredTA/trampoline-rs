@@ -32,9 +32,7 @@ This will create a new directory with `<project_name>`.
 Navigate to your project's directory and you can get started with two commands:
 
 ```bash
-make all
-make deploy-sudt-local
-make deploy-pw-lock-local
+trampoline start --with-git-init --with-deploy-scripts
 ```
 
 ### Generate dapp config

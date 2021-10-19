@@ -42,6 +42,11 @@ pub fn generate_project<P: AsRef<Path>>(name: String, project_path: P) -> Result
         fs::create_dir(dev_path)?;
     }
     sub_dir_path.pop();
+
+    sub_dir_path.push("contract_configs");
+    fs::create_dir(&sub_dir_path)?;
+    sub_dir_path.pop();
+
     let mut context = TeraContext::new();
     context.insert("PROJ_NAME", &name);
     proj_path.push(&name);
