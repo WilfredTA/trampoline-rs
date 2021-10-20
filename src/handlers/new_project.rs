@@ -2,6 +2,7 @@ use crate::handlers::TEMPLATES;
 use anyhow::Result;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
 use tera::{self, Context as TeraContext};
 
 #[derive(Debug, Clone)]
@@ -46,6 +47,15 @@ pub fn generate_project<P: AsRef<Path>>(name: String, project_path: P) -> Result
     sub_dir_path.push("contract_configs");
     fs::create_dir(&sub_dir_path)?;
     sub_dir_path.pop();
+
+
+    // Create docker volume
+    let volume_name = format!("{}-data", &name);
+    let _create_volume = Command::new("docker")
+        .args(["volume", "create", &volume_name])
+        .stderr(Stdio::inherit())
+        .spawn()?
+        .wait()?;
 
     let mut context = TeraContext::new();
     context.insert("PROJ_NAME", &name);
